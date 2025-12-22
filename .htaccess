@@ -1,0 +1,44 @@
+# Titan Products API - Apache Configuration
+
+# Enable rewrite engine
+RewriteEngine On
+
+# Set base directory
+RewriteBase /
+
+# Allow access to static files and directories
+RewriteCond %{REQUEST_FILENAME} -f [OR]
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^ - [L]
+
+# Route all other requests to index.php
+RewriteRule ^(.*)$ index.php [QSA,L]
+
+# Security headers
+<IfModule mod_headers.c>
+    Header set X-Content-Type-Options "nosniff"
+    Header set X-Frame-Options "DENY"
+    Header set X-XSS-Protection "1; mode=block"
+</IfModule>
+
+# Disable directory browsing
+Options -Indexes
+
+# Protect sensitive files
+<FilesMatch "^\.">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+<FilesMatch "\.(env|md|json|lock)$">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+# Allow swagger.json in docs folder
+<FilesMatch "swagger\.json$">
+    <If "%{REQUEST_URI} =~ m#^/docs/#">
+        Order allow,deny
+        Allow from all
+    </If>
+</FilesMatch>
