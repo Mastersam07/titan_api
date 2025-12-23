@@ -5,6 +5,7 @@ RUN apt-get update && apt-get install -y \
     libzip-dev \
     zip \
     unzip \
+    git \
     && docker-php-ext-install pdo pdo_sqlite zip \
     && a2enmod rewrite \
     && apt-get clean \
