@@ -1,29 +1,25 @@
 # Titan Products API
 
-A RESTful API for managing products, built with PHP and MySQL using a clean MVC architecture.
+A RESTful API for managing products, built with PHP and SQLite using a clean MVC architecture.
 
 ## 🏗️ Architecture
-
-This project follows a lightweight MVC pattern without framework dependencies:
 
 ```
 titan-api/
 ├── config/
-│   └── database.php       # Database singleton connection
+│   └── database.php       # SQLite connection
 ├── controllers/
-│   └── ProductController.php  # Request handling & responses
+│   ├── ProductController.php
+│   └── HealthController.php
 ├── models/
 │   └── Product.php        # Data access layer
 ├── migrations/
 │   └── migrate.php        # Database setup & seeding
+├── database/
+│   └── titan.db           # SQLite database (created on migrate)
 ├── tests/
-│   ├── Unit/              # Unit tests
-│   └── Integration/       # Integration tests
-├── docs/
-│   └── swagger.json       # OpenAPI 3.0 documentation
 ├── index.php              # Entry point & router
-├── .htaccess              # Apache URL rewriting
-└── composer.json          # Dependencies & scripts
+└── Dockerfile             # For Render deployment
 ```
 
 ## 🚀 Quick Start
@@ -31,53 +27,37 @@ titan-api/
 ### Prerequisites
 
 - PHP 8.1 or higher
-- MySQL 5.7+ or MariaDB 10.3+
 - Composer
-- PDO PHP extension
+
+**No database server needed!** SQLite is built into PHP.
 
 ### Installation
 
-1. **Clone or extract the project:**
-   ```bash
-   cd titan-api
-   ```
+```bash
+cd titan-api
 
-2. **Install dependencies:**
-   ```bash
-   composer install
-   ```
+# Install dependencies
+composer install
 
-3. **Configure environment:**
-   ```bash
-   cp .env.example .env
-   ```
-   
-   Edit `.env` with your database credentials:
-   ```env
-   DB_HOST=localhost
-   DB_NAME=titan_products
-   DB_USER=root
-   DB_PASS=your_password
-   ```
+# Run migration (creates database/titan.db with sample data)
+php migrations/migrate.php
 
-4. **Run database migration:**
-   ```bash
-   composer migrate
-   # or
-   php migrations/migrate.php
-   ```
+# Start server
+php -S localhost:8000
+```
 
-5. **Start the development server:**
-   ```bash
-   composer serve
-   # or
-   php -S localhost:8000
-   ```
+### Test It
 
-6. **Verify installation:**
-   ```bash
-   curl http://localhost:8000/health
-   ```
+```bash
+# Health check
+curl http://localhost:8000/health
+
+# List products
+curl http://localhost:8000/products
+
+# Swagger docs
+open http://localhost:8000/docs
+```
 
 ## 📡 API Endpoints
 
@@ -85,6 +65,7 @@ titan-api/
 |--------|----------|-------------|
 | GET | `/` | API information |
 | GET | `/health` | Health check |
+| GET | `/docs` | Swagger UI documentation |
 | GET | `/products` | List all products |
 | GET | `/products/{id}` | Get single product |
 | POST | `/products` | Create product |
@@ -101,16 +82,6 @@ titan-api/
 | `search` | string | Search name/description |
 
 ## 📖 Usage Examples
-
-### List Products
-```bash
-curl http://localhost:8000/products
-```
-
-### Get Single Product
-```bash
-curl http://localhost:8000/products/1
-```
 
 ### Create Product
 ```bash
@@ -129,15 +100,7 @@ curl -X POST http://localhost:8000/products \
 ```bash
 curl -X PUT http://localhost:8000/products/1 \
   -H "Content-Type: application/json" \
-  -d '{
-    "name": "Updated Name",
-    "price": 39.99
-  }'
-```
-
-### Delete Product
-```bash
-curl -X DELETE http://localhost:8000/products/1
+  -d '{"name": "Updated Name", "price": 39.99}'
 ```
 
 ### Search Products
@@ -145,80 +108,58 @@ curl -X DELETE http://localhost:8000/products/1
 curl "http://localhost:8000/products?search=wireless"
 ```
 
-### Pagination
-```bash
-curl "http://localhost:8000/products?limit=10&offset=20"
-```
+## 📚 API Documentation
 
-### Filter by Category
-```bash
-curl "http://localhost:8000/products?category=Electronics"
-```
+Swagger UI is available at: **`/docs`**
 
-## 📊 Response Format
-
-### Success Response
-```json
-{
-  "success": true,
-  "data": { ... },
-  "meta": {
-    "total": 10,
-    "limit": 100,
-    "offset": 0
-  }
-}
-```
-
-### Error Response
-```json
-{
-  "success": false,
-  "error": {
-    "code": 404,
-    "message": "Product not found"
-  }
-}
-```
+The OpenAPI spec is auto-generated from PHP 8 attributes in the source code.
 
 ## 🧪 Testing
 
-### Run All Tests
 ```bash
+# Run all tests
 composer test
-```
 
-### Run Unit Tests Only
-```bash
+# Run unit tests only
 composer test:unit
 ```
 
-### Run Integration Tests Only
+## 🌐 Deploy to Render
+
+**1. Push to GitHub**
 ```bash
-composer test:integration
+git init
+git add .
+git commit -m "Initial commit"
+gh repo create titan-api --public --push
 ```
 
-### Generate Coverage Report
+**2. Deploy on Render**
+
+1. Go to [render.com](https://render.com) → **New** → **Web Service**
+2. Connect your GitHub repo
+3. Settings:
+   - **Runtime:** Docker
+   - **Dockerfile Path:** `./Dockerfile`
+4. Add Environment Variable:
+   - `APP_DEBUG` = `false`
+5. Click **Create Web Service**
+
+**3. Done!**
+
+Your API will be at: `https://your-app.onrender.com`
+
+The database is embedded in the Docker image with sample data.
+
+> **Note:** Free tier Render services spin down after inactivity. First request after idle may take ~30 seconds.
+
+### Local Docker Testing
+
 ```bash
-composer test:coverage
+docker build -t titan-api .
+docker run -p 8000:80 titan-api
+# Visit http://localhost:8000
 ```
-Coverage report will be generated in the `coverage/` directory.
-
-### Static Analysis
-```bash
-composer analyse
-```
-
-## 📚 API Documentation
-
-Swagger UI is served at: **`/docs`**
-
-After starting the server, visit: `http://localhost:8000/docs`
-
-The OpenAPI spec is **generated on-the-fly** from PHP 8 attributes in the source code - no static files to maintain. Just update the annotations in your code and refresh the docs page.
-
-- Swagger UI: `http://localhost:8000/docs`
-- Raw JSON spec: `http://localhost:8000/docs/swagger.json`
 
 ## 🔧 Configuration
 
@@ -226,73 +167,13 @@ The OpenAPI spec is **generated on-the-fly** from PHP 8 attributes in the source
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `DB_HOST` | localhost | Database host |
-| `DB_NAME` | titan_products | Database name |
-| `DB_USER` | root | Database username |
-| `DB_PASS` | (empty) | Database password |
-| `APP_DEBUG` | false | Show detailed errors |
+| `DB_PATH` | `database/titan.db` | SQLite database path |
+| `APP_DEBUG` | `false` | Show detailed errors |
 
-### Apache Configuration
+## 📁 Project Files
 
-The included `.htaccess` handles URL rewriting. Ensure `mod_rewrite` is enabled:
-```bash
-sudo a2enmod rewrite
-sudo systemctl restart apache2
-```
-
-### Nginx Configuration
-
-```nginx
-location / {
-    try_files $uri $uri/ /index.php?$query_string;
-}
-
-location ~ \.php$ {
-    fastcgi_pass unix:/var/run/php/php8.1-fpm.sock;
-    fastcgi_param SCRIPT_FILENAME $realpath_root$fastcgi_script_name;
-    include fastcgi_params;
-}
-```
-
-## 🌐 Deployment Options
-
-### Local Development with ngrok
-```bash
-# Start the server
-php -S localhost:8000
-
-# In another terminal, expose with ngrok
-ngrok http 8000
-```
-
-### Shared Hosting
-1. Upload files to `public_html` or `www`
-2. Import database via phpMyAdmin
-3. Update `.env` with production credentials
-
-### Docker (optional)
-```dockerfile
-FROM php:8.2-apache
-RUN docker-php-ext-install pdo pdo_mysql
-RUN a2enmod rewrite
-COPY . /var/www/html/
-```
-
-## 🛡️ Security Considerations
-
-- Input validation on all endpoints
-- Prepared statements prevent SQL injection
-- CORS headers configured for API access
-- Error details hidden in production (APP_DEBUG=false)
-
-## 📁 Project Structure Explained
-
-- **index.php**: Entry point with routing logic. Maps URLs to controller methods.
-- **Database.php**: Singleton pattern for PDO connection management.
-- **Product.php**: Model with CRUD operations and validation logic.
-- **ProductController.php**: Handles HTTP requests and JSON responses.
-- **migrate.php**: Creates tables and seeds sample data.
-
-## 📄 License
-
-MIT License - See LICENSE file for details.
+- **index.php** - Router with CORS and error handling
+- **database.php** - SQLite PDO singleton
+- **Product.php** - Model with OpenAPI attributes
+- **ProductController.php** - CRUD operations
+- **migrate.php** - Creates tables and seeds data

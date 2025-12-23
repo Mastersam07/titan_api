@@ -11,13 +11,15 @@ class Database
     public static function getInstance(): PDO
     {
         if (self::$instance === null) {
-            $host = $_ENV['DB_HOST'] ?? 'localhost';
-            $dbname = $_ENV['DB_NAME'] ?? 'titan_products';
-            $username = $_ENV['DB_USER'] ?? 'root';
-            $password = $_ENV['DB_PASS'] ?? '';
-            $charset = 'utf8mb4';
+            $dbPath = $_ENV['DB_PATH'] ?? __DIR__ . '/../database/titan.db';
             
-            $dsn = "mysql:host={$host};dbname={$dbname};charset={$charset}";
+            // Ensure directory exists
+            $dbDir = dirname($dbPath);
+            if (!is_dir($dbDir)) {
+                mkdir($dbDir, 0755, true);
+            }
+            
+            $dsn = "sqlite:{$dbPath}";
             
             $options = [
                 PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
@@ -26,7 +28,10 @@ class Database
             ];
             
             try {
-                self::$instance = new PDO($dsn, $username, $password, $options);
+                self::$instance = new PDO($dsn, null, null, $options);
+                
+                // Enable foreign keys for SQLite
+                self::$instance->exec('PRAGMA foreign_keys = ON');
             } catch (PDOException $e) {
                 throw new RuntimeException('Database connection failed: ' . $e->getMessage());
             }

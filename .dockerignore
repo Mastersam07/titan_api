@@ -1,0 +1,27 @@
+# Git
+.git
+.gitignore
+
+# IDE
+.idea
+.vscode
+*.swp
+
+# Testing
+tests
+phpunit.xml
+coverage
+
+# Documentation
+*.md
+
+# Environment (will be set via Render)
+.env
+.env.local
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Database (will be generated in container)
+database/*.db

@@ -4,6 +4,9 @@
 # Environment
 .env
 
+# Database (generated)
+/database/*.db
+
 # IDE
 .idea/
 .vscode/

@@ -1,0 +1,16 @@
+# Render Blueprint
+# https://render.com/docs/blueprint-spec
+
+services:
+  - type: web
+    name: titan-api
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    envVars:
+      - key: APP_DEBUG
+        value: "false"
+    healthCheckPath: /health
+    disk:
+      name: titan-data
+      mountPath: /var/www/html/database
+      sizeGB: 1

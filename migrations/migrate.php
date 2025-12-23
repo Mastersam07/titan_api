@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 /**
- * Database Migration Script
+ * Database Migration Script (SQLite)
  * 
  * Creates the products table and seeds it with sample data.
  * 
@@ -22,51 +22,55 @@ if (file_exists($envFile)) {
     }
 }
 
-$host = $_ENV['DB_HOST'] ?? 'localhost';
-$dbname = $_ENV['DB_NAME'] ?? 'titan_products';
-$username = $_ENV['DB_USER'] ?? 'root';
-$password = $_ENV['DB_PASS'] ?? '';
+$dbPath = $_ENV['DB_PATH'] ?? __DIR__ . '/../database/titan.db';
 
-echo "=== Titan Products API - Database Migration ===\n\n";
+echo "=== Titan Products API - Database Migration (SQLite) ===\n\n";
+
+// Ensure directory exists
+$dbDir = dirname($dbPath);
+if (!is_dir($dbDir)) {
+    echo "Creating database directory: {$dbDir}\n";
+    mkdir($dbDir, 0755, true);
+}
 
 try {
-    // Connect without database to create it if needed
-    $pdo = new PDO("mysql:host={$host}", $username, $password, [
+    $pdo = new PDO("sqlite:{$dbPath}", null, null, [
         PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+        PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
     ]);
     
-    // Create database if it doesn't exist
-    echo "Creating database '{$dbname}' if it doesn't exist...\n";
-    $pdo->exec("CREATE DATABASE IF NOT EXISTS `{$dbname}` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
-    $pdo->exec("USE `{$dbname}`");
+    echo "Database: {$dbPath}\n\n";
     
     // Create products table
     echo "Creating products table...\n";
     $pdo->exec("
         CREATE TABLE IF NOT EXISTS products (
-            id INT AUTO_INCREMENT PRIMARY KEY,
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
             name VARCHAR(255) NOT NULL,
             description TEXT,
             price DECIMAL(10, 2) NOT NULL,
             image_url VARCHAR(500),
-            stock_quantity INT DEFAULT 0,
+            stock_quantity INTEGER DEFAULT 0,
             category VARCHAR(100),
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-            INDEX idx_category (category),
-            INDEX idx_created_at (created_at),
-            INDEX idx_name (name)
-        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        )
     ");
+    
+    // Create indexes
+    $pdo->exec("CREATE INDEX IF NOT EXISTS idx_category ON products(category)");
+    $pdo->exec("CREATE INDEX IF NOT EXISTS idx_created_at ON products(created_at)");
+    $pdo->exec("CREATE INDEX IF NOT EXISTS idx_name ON products(name)");
     
     echo "Products table created successfully.\n\n";
     
+    // Check if we should seed
     $stmt = $pdo->query("SELECT COUNT(*) as count FROM products");
-    $count = $stmt->fetch(PDO::FETCH_ASSOC)['count'];
+    $count = $stmt->fetch()['count'];
     
     if ($count > 0) {
         echo "Products table already has {$count} records. Skipping seed.\n";
-        echo "To reseed, truncate the table first: TRUNCATE TABLE products;\n";
+        echo "To reseed, delete the database file and run again.\n";
     } else {
         echo "Seeding sample products...\n";
         

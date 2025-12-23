@@ -142,9 +142,11 @@ class Product
     {
         $this->validateProductData($data);
         
+        $now = date('Y-m-d H:i:s');
+        
         $stmt = $this->db->prepare(
             'INSERT INTO products (name, description, price, image_url, stock_quantity, category, created_at, updated_at) 
-             VALUES (:name, :description, :price, :image_url, :stock_quantity, :category, NOW(), NOW())'
+             VALUES (:name, :description, :price, :image_url, :stock_quantity, :category, :created_at, :updated_at)'
         );
         
         $stmt->execute([
@@ -154,6 +156,8 @@ class Product
             ':image_url' => $data['image_url'] ?? null,
             ':stock_quantity' => $data['stock_quantity'] ?? 0,
             ':category' => $data['category'] ?? null,
+            ':created_at' => $now,
+            ':updated_at' => $now,
         ]);
         
         $id = (int) $this->db->lastInsertId();
@@ -188,7 +192,8 @@ class Product
             return $existing;
         }
         
-        $fields[] = 'updated_at = NOW()';
+        $fields[] = "updated_at = :updated_at";
+        $params[':updated_at'] = date('Y-m-d H:i:s');
         
         $sql = 'UPDATE products SET ' . implode(', ', $fields) . ' WHERE id = :id';
         
