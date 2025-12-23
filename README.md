@@ -1,4 +1,5 @@
 # Titan Products API
+[![codecov](https://codecov.io/github/Mastersam07/titan_api/branch/dev/graph/badge.svg?token=5qjMM5ZwQC)](https://codecov.io/github/Mastersam07/titan_api)
 
 A RESTful API for managing products, built with PHP and SQLite using a clean MVC architecture.
 

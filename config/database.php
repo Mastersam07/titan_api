@@ -13,24 +13,21 @@ class Database
         if (self::$instance === null) {
             $dbPath = $_ENV['DB_PATH'] ?? __DIR__ . '/../database/titan.db';
             
-            // Ensure directory exists
             $dbDir = dirname($dbPath);
             if (!is_dir($dbDir)) {
                 mkdir($dbDir, 0755, true);
             }
-            
+
             $dsn = "sqlite:{$dbPath}";
-            
+
             $options = [
                 PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
                 PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
                 PDO::ATTR_EMULATE_PREPARES => false,
             ];
-            
+
             try {
                 self::$instance = new PDO($dsn, null, null, $options);
-                
-                // Enable foreign keys for SQLite
                 self::$instance->exec('PRAGMA foreign_keys = ON');
             } catch (PDOException $e) {
                 throw new RuntimeException('Database connection failed: ' . $e->getMessage());

@@ -28,10 +28,10 @@
         ]
     },
     "scripts": {
-        "test": "phpunit",
-        "test:unit": "phpunit --testsuite Unit",
-        "test:integration": "phpunit --testsuite Integration",
-        "test:coverage": "phpunit --coverage-html coverage",
+        "test": "XDEBUG_MODE=coverage phpunit",
+        "test:unit": "XDEBUG_MODE=coverage phpunit --testsuite Unit",
+        "test:integration": "XDEBUG_MODE=coverage phpunit --testsuite Integration",
+        "test:coverage": "XDEBUG_MODE=coverage phpunit --coverage-html coverage",
         "analyse": "phpstan analyse models controllers --level=5",
         "migrate": "php migrations/migrate.php",
         "serve": "php -S localhost:8000 -t ."

@@ -14,13 +14,11 @@ class ProductTest extends TestCase
     
     protected function setUp(): void
     {
-        // Create in-memory SQLite database for testing
         $this->pdo = new PDO('sqlite::memory:', null, null, [
             PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
             PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
         ]);
-        
-        // Create products table
+
         $this->pdo->exec("
             CREATE TABLE products (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -34,8 +32,7 @@ class ProductTest extends TestCase
                 updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
             )
         ");
-        
-        // Inject the test database
+
         Database::setInstance($this->pdo);
         
         $this->product = new Product($this->pdo);
@@ -71,11 +68,7 @@ class ProductTest extends TestCase
         
         return (int) $this->pdo->lastInsertId();
     }
-    
-    // =========================================
-    // getAll() Tests
-    // =========================================
-    
+
     public function testGetAllReturnsEmptyArrayWhenNoProducts(): void
     {
         $result = $this->product->getAll();
@@ -116,11 +109,7 @@ class ProductTest extends TestCase
         
         $this->assertCount(1, $result);
     }
-    
-    // =========================================
-    // count() Tests
-    // =========================================
-    
+
     public function testCountReturnsZeroWhenNoProducts(): void
     {
         $result = $this->product->count();
@@ -138,11 +127,7 @@ class ProductTest extends TestCase
         
         $this->assertEquals(3, $result);
     }
-    
-    // =========================================
-    // getById() Tests
-    // =========================================
-    
+
     public function testGetByIdReturnsNullWhenNotFound(): void
     {
         $result = $this->product->getById(999);
@@ -184,11 +169,7 @@ class ProductTest extends TestCase
         $this->assertArrayHasKey('created_at', $result);
         $this->assertArrayHasKey('updated_at', $result);
     }
-    
-    // =========================================
-    // create() Tests
-    // =========================================
-    
+
     public function testCreateProductSuccessfully(): void
     {
         $data = [
@@ -268,11 +249,7 @@ class ProductTest extends TestCase
             'stock_quantity' => -5,
         ]);
     }
-    
-    // =========================================
-    // update() Tests
-    // =========================================
-    
+
     public function testUpdateProductSuccessfully(): void
     {
         $id = $this->seedProduct(['name' => 'Original Name', 'price' => 50.00]);
@@ -327,11 +304,7 @@ class ProductTest extends TestCase
         
         $this->assertEquals('No Changes', $result['name']);
     }
-    
-    // =========================================
-    // delete() Tests
-    // =========================================
-    
+
     public function testDeleteProductSuccessfully(): void
     {
         $id = $this->seedProduct();
@@ -348,11 +321,7 @@ class ProductTest extends TestCase
         
         $this->assertFalse($result);
     }
-    
-    // =========================================
-    // search() Tests
-    // =========================================
-    
+
     public function testSearchByName(): void
     {
         $this->seedProduct(['name' => 'Apple iPhone']);
@@ -393,11 +362,7 @@ class ProductTest extends TestCase
         
         $this->assertCount(2, $result);
     }
-    
-    // =========================================
-    // getByCategory() Tests
-    // =========================================
-    
+
     public function testGetByCategory(): void
     {
         $this->seedProduct(['name' => 'Phone', 'category' => 'Electronics']);

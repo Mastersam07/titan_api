@@ -1,6 +1,5 @@
 FROM php:8.2-apache
 
-# Install system dependencies and PHP extensions
 RUN apt-get update && apt-get install -y \
     libsqlite3-dev \
     libzip-dev \
@@ -11,36 +10,26 @@ RUN apt-get update && apt-get install -y \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# Set working directory
 WORKDIR /var/www/html
 
-# Copy application files
 COPY . .
 
-# Install PHP dependencies
 RUN composer install --no-dev --optimize-autoloader --no-interaction
 
-# Create database directory with proper permissions BEFORE migration
 RUN mkdir -p /var/www/html/database \
     && chown -R www-data:www-data /var/www/html/database \
     && chmod -R 775 /var/www/html/database
 
-# Run migration as www-data user so file is owned correctly
 RUN su www-data -s /bin/bash -c "php migrations/migrate.php"
 
-# Set permissions for the rest of the app
 RUN chown -R www-data:www-data /var/www/html \
     && chmod -R 755 /var/www/html \
     && chmod -R 775 /var/www/html/database
 
-# Configure Apache
 RUN sed -i 's/AllowOverride None/AllowOverride All/g' /etc/apache2/apache2.conf
 
-# Expose port 80
 EXPOSE 80
 
-# Start Apache
 CMD ["apache2-foreground"]

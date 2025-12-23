@@ -77,8 +77,7 @@ class ProductController
         $offset = isset($_GET['offset']) ? (int) $_GET['offset'] : 0;
         $category = $_GET['category'] ?? null;
         $search = $_GET['search'] ?? null;
-        
-        // Cap limit at 100
+
         $limit = min($limit, 100);
         
         try {

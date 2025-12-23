@@ -10,7 +10,6 @@ declare(strict_types=1);
  * Usage: php migrations/migrate.php
  */
 
-// Load environment variables
 $envFile = __DIR__ . '/../.env';
 if (file_exists($envFile)) {
     $lines = file($envFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
@@ -26,7 +25,6 @@ $dbPath = $_ENV['DB_PATH'] ?? __DIR__ . '/../database/titan.db';
 
 echo "=== Titan Products API - Database Migration (SQLite) ===\n\n";
 
-// Ensure directory exists
 $dbDir = dirname($dbPath);
 if (!is_dir($dbDir)) {
     echo "Creating database directory: {$dbDir}\n";
@@ -40,8 +38,7 @@ try {
     ]);
     
     echo "Database: {$dbPath}\n\n";
-    
-    // Create products table
+
     echo "Creating products table...\n";
     $pdo->exec("
         CREATE TABLE IF NOT EXISTS products (
@@ -56,15 +53,13 @@ try {
             updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
         )
     ");
-    
-    // Create indexes
+
     $pdo->exec("CREATE INDEX IF NOT EXISTS idx_category ON products(category)");
     $pdo->exec("CREATE INDEX IF NOT EXISTS idx_created_at ON products(created_at)");
     $pdo->exec("CREATE INDEX IF NOT EXISTS idx_name ON products(name)");
     
     echo "Products table created successfully.\n\n";
-    
-    // Check if we should seed
+
     $stmt = $pdo->query("SELECT COUNT(*) as count FROM products");
     $count = $stmt->fetch()['count'];
     

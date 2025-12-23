@@ -15,13 +15,11 @@ class ProductControllerTest extends TestCase
     
     protected function setUp(): void
     {
-        // Create in-memory SQLite database for testing
         $this->pdo = new PDO('sqlite::memory:', null, null, [
             PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
             PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
         ]);
-        
-        // Create products table
+
         $this->pdo->exec("
             CREATE TABLE products (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -40,8 +38,7 @@ class ProductControllerTest extends TestCase
         
         $this->productModel = new Product($this->pdo);
         $this->controller = new ProductController($this->productModel);
-        
-        // Clear output buffer and reset superglobals
+
         $_GET = [];
         $_POST = [];
     }
@@ -90,11 +87,7 @@ class ProductControllerTest extends TestCase
         
         return json_decode($output, true) ?? [];
     }
-    
-    // =========================================
-    // index() Tests
-    // =========================================
-    
+
     public function testIndexReturnsEmptyArray(): void
     {
         $result = $this->captureOutput(fn() => $this->controller->index());
@@ -179,11 +172,7 @@ class ProductControllerTest extends TestCase
         
         $this->assertEquals(100, $result['meta']['limit']);
     }
-    
-    // =========================================
-    // show() Tests
-    // =========================================
-    
+
     public function testShowReturnsProduct(): void
     {
         $id = $this->seedProduct(['name' => 'Specific Product', 'price' => 49.99]);
@@ -203,11 +192,7 @@ class ProductControllerTest extends TestCase
         $this->assertEquals(404, $result['error']['code']);
         $this->assertEquals('Product not found', $result['error']['message']);
     }
-    
-    // =========================================
-    // destroy() Tests
-    // =========================================
-    
+
     public function testDestroyDeletesProduct(): void
     {
         $id = $this->seedProduct();
@@ -216,8 +201,6 @@ class ProductControllerTest extends TestCase
         
         $this->assertTrue($result['success']);
         $this->assertEquals('Product deleted successfully', $result['message']);
-        
-        // Verify product is deleted
         $this->assertNull($this->productModel->getById($id));
     }
     
@@ -228,11 +211,7 @@ class ProductControllerTest extends TestCase
         $this->assertFalse($result['success']);
         $this->assertEquals(404, $result['error']['code']);
     }
-    
-    // =========================================
-    // Response Format Tests
-    // =========================================
-    
+
     public function testSuccessResponseFormat(): void
     {
         $this->seedProduct();

@@ -10,7 +10,6 @@ declare(strict_types=1);
  * @version 1.0.0
  */
 
-// Load environment variables from .env file if it exists
 $envFile = __DIR__ . '/.env';
 if (file_exists($envFile)) {
     $lines = file($envFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
@@ -22,7 +21,6 @@ if (file_exists($envFile)) {
     }
 }
 
-// Error handling
 set_error_handler(function ($severity, $message, $file, $line) {
     throw new ErrorException($message, 0, $severity, $file, $line);
 });
@@ -41,61 +39,50 @@ set_exception_handler(function ($exception) {
     exit;
 });
 
-// CORS headers
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: GET, POST, PUT, PATCH, DELETE, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With');
 header('Access-Control-Max-Age: 86400');
 
-// Handle preflight requests
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     http_response_code(204);
     exit;
 }
 
-// Get request method and URI
 $method = $_SERVER['REQUEST_METHOD'];
 $uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 
-// Remove base path if API is in a subdirectory
 $basePath = '/';
 if (strpos($uri, '/api') === 0) {
     $basePath = '/api';
 }
 $uri = substr($uri, strlen($basePath)) ?: '/';
 
-// Remove trailing slash (except for root)
 if ($uri !== '/' && substr($uri, -1) === '/') {
     $uri = rtrim($uri, '/');
 }
 
-// Serve Swagger documentation at /docs
 if ($uri === '/docs' || $uri === '/docs/swagger.json') {
-    
-    // Load OpenAPI dependencies
     require_once __DIR__ . '/vendor/autoload.php';
     require_once __DIR__ . '/config/openapi.php';
     require_once __DIR__ . '/config/database.php';
     require_once __DIR__ . '/models/Product.php';
     require_once __DIR__ . '/controllers/ProductController.php';
     require_once __DIR__ . '/controllers/HealthController.php';
-    
-    // Generate OpenAPI spec
+
     $openapi = \OpenApi\Generator::scan([
         __DIR__ . '/config',
         __DIR__ . '/models',
         __DIR__ . '/controllers',
     ]);
-    
-    // Return raw JSON for /docs/swagger.json
+
     if ($uri === '/docs/swagger.json') {
         header('Content-Type: application/json');
         header('Cache-Control: no-cache');
         echo $openapi->toJson();
         exit;
     }
-    
-    // Serve Swagger UI with embedded spec for /docs
+
     $spec = $openapi->toJson();
     header('Content-Type: text/html; charset=utf-8');
     echo <<<HTML
@@ -155,12 +142,10 @@ HTML;
     exit;
 }
 
-// Load dependencies
 require_once __DIR__ . '/config/database.php';
 require_once __DIR__ . '/controllers/HealthController.php';
 require_once __DIR__ . '/controllers/ProductController.php';
 
-// Simple router
 $routes = [
     'GET' => [
         '/' => [HealthController::class, 'info'],
@@ -182,7 +167,6 @@ $routes = [
     ],
 ];
 
-// Match route
 $handler = null;
 $params = [];
 
@@ -191,7 +175,7 @@ if (isset($routes[$method])) {
         $regex = '#^' . $pattern . '$#';
         if (preg_match($regex, $uri, $matches)) {
             $handler = $routeHandler;
-            array_shift($matches); // Remove full match
+            array_shift($matches);
             $params = $matches;
             break;
         }
@@ -221,14 +205,11 @@ if (!$handler) {
     exit;
 }
 
-// Execute handler
 [$class, $method] = $handler;
 
 if ($class === HealthController::class) {
-    // Static methods for HealthController
     call_user_func_array([$class, $method], $params);
 } else {
-    // Instance methods for other controllers
     $controller = new $class();
     call_user_func_array([$controller, $method], array_map('intval', $params));
 }
