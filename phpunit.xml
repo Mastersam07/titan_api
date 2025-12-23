@@ -18,6 +18,9 @@
             <directory suffix=".php">./models</directory>
             <directory suffix=".php">./controllers</directory>
         </include>
+        <exclude>
+            <file>./controllers/HealthController.php</file>
+        </exclude>
         <report>
             <html outputDirectory="coverage"/>
             <text outputFile="php://stdout"/>
