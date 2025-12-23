@@ -25,4 +25,4 @@ Thumbs.db
 *.log
 
 # Compiled files
-*.cache
+*.cachecomposer.lock

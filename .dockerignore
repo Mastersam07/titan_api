@@ -25,3 +25,7 @@ Thumbs.db
 
 # Database (will be generated in container)
 database/*.db
+
+# Lock file (let Docker install fresh for its PHP version)
+composer.lock
+vendor
