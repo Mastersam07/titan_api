@@ -23,14 +23,18 @@ COPY . .
 # Install PHP dependencies
 RUN composer install --no-dev --optimize-autoloader --no-interaction
 
-# Create database directory with proper permissions
+# Create database directory with proper permissions BEFORE migration
 RUN mkdir -p /var/www/html/database \
-    && chown -R www-data:www-data /var/www/html \
-    && chmod -R 755 /var/www/html \
+    && chown -R www-data:www-data /var/www/html/database \
     && chmod -R 775 /var/www/html/database
 
-# Run migration to create and seed database
-RUN php migrations/migrate.php
+# Run migration as www-data user so file is owned correctly
+RUN su www-data -s /bin/bash -c "php migrations/migrate.php"
+
+# Set permissions for the rest of the app
+RUN chown -R www-data:www-data /var/www/html \
+    && chmod -R 755 /var/www/html \
+    && chmod -R 775 /var/www/html/database
 
 # Configure Apache
 RUN sed -i 's/AllowOverride None/AllowOverride All/g' /etc/apache2/apache2.conf
